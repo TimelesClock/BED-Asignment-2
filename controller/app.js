@@ -86,12 +86,26 @@ app.delete('/actors/:actor_id',(req,res)=>{
     user.delete_actor(id,(err,results)=>{
         if(err){
             console.log(err)
-            return res.status(500).send(err_msg)
+            return res.type('json').status(500).send(err_msg)
         }else{
             if (results == 0){
                 return res.status(204).send()
             }
             return res.type('json').status(200).send(JSON.stringify({"success_msg":"actor_deleted"}))
+        }
+    })
+})
+
+app.get('/film_categories/:category_id/films',(req,res)=>{
+    const id = req.params.category_id
+    user.get_films(id,(err,results)=>{
+        if(err){
+            console.log(err)
+            return res.status(500).send(err_msg)
+        }else{
+
+            let end = results.map(({film_id,title,category,rating,release_year,duration}) => ({"film_id":film_id.toString(),"title":title,"category":category,"rating":rating,"release_year":release_year.toString(),"duration":duration.toString()}))
+            return res.status(200).send(end)
         }
     })
 })

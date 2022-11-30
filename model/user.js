@@ -102,6 +102,24 @@ var userDB = {
                 })
             }
         })
+    },
+
+    get_films:(id,callback)=>{
+        var conn = db.getConnection()
+        conn.connect((err)=>{
+            if(err){
+                return callback(err,null)
+            }else{
+                const sql = `SELECT f.film_id,f.title,c.name AS category,f.rating,f.release_year,f.length AS duration FROM film f,film_category fc,category c WHERE  fc.category_id = c.category_id AND fc.film_id = f.film_id AND c.category_id = ?;`
+                conn.query(sql,[id],(error,results)=>{
+                    if(error){
+                        return callback(error,null)
+                    }else{
+                        return callback(null,results)
+                    }
+                })
+            }
+        })
     }
 }
 
