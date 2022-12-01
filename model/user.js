@@ -76,6 +76,7 @@ var userDB = {
             } else {
                 const sql = "UPDATE actor SET first_name = IFNull(?,first_name),last_name = IFNull(?,last_name) WHERE actor_id = ?"
                 conn.query(sql, [actor.first_name, actor.last_name, id], (error, results) => {
+                    conn.end()
                     if (error) {
                         return callback(error, null)
                     } else {
@@ -94,6 +95,7 @@ var userDB = {
             } else {
                 const sql = "DELETE FROM actor WHERE actor_id = ?"
                 conn.query(sql, [id], (error, results) => {
+                    conn.end()
                     if (error) {
                         return callback(error, null)
                     } else {
@@ -112,6 +114,7 @@ var userDB = {
             } else {
                 const sql = `SELECT f.film_id,f.title,c.name AS category,f.rating,f.release_year,f.length AS duration FROM film f,film_category fc,category c WHERE  fc.category_id = c.category_id AND fc.film_id = f.film_id AND c.category_id = ?;`
                 conn.query(sql, [id], (error, results) => {
+                    conn.end()
                     if (error) {
                         return callback(error, null)
                     } else {
@@ -138,6 +141,7 @@ var userDB = {
                 WHERE payment.customer_id = ? AND payment.payment_date BETWEEN ? AND ?;
                 `
                 conn.query(sql, [id, start, end], (error, results) => {
+                    conn.end()
                     if (error) {
                         return callback(error, null)
                     } else {
@@ -146,7 +150,56 @@ var userDB = {
                 })
             }
         })
-    }
+    },
+
+    new_customer: (body, address, callback) => {
+        var conn = db.getConnection()
+        conn.connect((err) => {
+            if (err) {
+                return callback(err, null)
+            } else {
+                conn.query('BEGIN', (error, result) => {
+                    if (error) {
+                        conn.end()
+                        return callback(error, null)
+                    }
+                    conn.query('INSERT into address(address,address2,district,city_id,postal_code,phone) VALUES (?,?,?,?,?,?)',
+                        [address.address_line1,
+                        address.address_line2,
+                        address.district,
+                        address.city_id,
+                        address.postal_code,
+                        address.phone],
+                        (error, result) => {
+                            if (error) {
+                                conn.end()
+                                return callback(error, null)
+                            }
+                            conn.query('INSERT INTO customer(store_id,first_name,last_name,email,address_id) VALUES (?,?,?,?,LAST_INSERT_ID())', [
+                                body.store_id,
+                                body.first_name,
+                                body.last_name,
+                                body.email
+                            ], (error, result) => {
+                                if (error) {
+                                    conn.end()
+                                    return callback(error, null)
+                                }
+                                var end = result
+                                conn.query('COMMIT', (error, result) => {
+                                    if (error) {
+                                        conn.end()
+                                        return callback(error, null)
+                                    }
+                                    conn.end()
+                                    return callback(null, end.insertId)
+                                })
+                            })
+                        })
+                })
+            }
+        })
+    },
 }
 
 module.exports = userDB
