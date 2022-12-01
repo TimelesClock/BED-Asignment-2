@@ -101,11 +101,31 @@ app.get('/film_categories/:category_id/films',(req,res)=>{
     user.get_films(id,(err,results)=>{
         if(err){
             console.log(err)
-            return res.status(500).send(err_msg)
+            return res.type('json').status(500).send(err_msg)
         }else{
 
             let end = results.map(({film_id,title,category,rating,release_year,duration}) => ({"film_id":film_id.toString(),"title":title,"category":category,"rating":rating,"release_year":release_year.toString(),"duration":duration.toString()}))
             return res.status(200).send(end)
+        }
+    })
+})
+
+app.get('/customer/:customer_id/payment',(req,res)=>{
+    const id = req.params.customer_id
+    const start = req.query.start_date
+    const end = req.query.end_date
+    user.get_payment(id,start,end,(err,results)=>{
+        if (err){
+            console.log(err)
+            return res.type('json').status(500).send(err_msg)
+        }else{
+            if (results.length == 0){
+                return res.type('json').status(200).send(JSON.stringify({"rental":results,"total":"0"}))
+            }
+            let sum = 0
+            results.forEach(obj => sum += obj.amount)
+            results = results.map(({title,amount,payment_date})=>({"title":title,"amount":amount.toFixed(2).toString(),"payment_date":new Date(payment_date.getTime() - (payment_date.getTimezoneOffset() * 60000)).toISOString().slice(0, 19).replace('T', ' ')}))
+            return res.type('json').status(200).send(JSON.stringify({"rental":results,"total":sum.toFixed(2).toString()}))
         }
     })
 })
