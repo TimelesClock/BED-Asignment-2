@@ -20,7 +20,8 @@ app.get('/actors/:actor_id', (req, res) => {
         } else if (result == null) {
             return res.status(204).send()
         } else {
-            return res.status(200).send(result)
+            let end = result.map(({actor_id,first_name,last_name})=>({"actor_id":actor_id.toString(),"first_name":first_name,"last_name":last_name}))[0]
+            return res.status(200).send(end)
         }
     })
 })
@@ -56,7 +57,7 @@ app.post('/actors/', (req, res) => {
 
         } else {
             return res.type('json').status(201).send(JSON.stringify(
-                { "actor_id": result }
+                { "actor_id": result.toString() }
             ))
         }
     })
