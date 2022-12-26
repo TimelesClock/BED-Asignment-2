@@ -93,14 +93,34 @@ var userDB = {
             if (err) {
                 return callback(err, null)
             } else {
-                const sql = "DELETE FROM actor WHERE actor_id = ?"
-                conn.query(sql, [id], (error, results) => {
-                    conn.end()
+                conn.query('BEGIN', (error, result) => {
                     if (error) {
+                        conn.end()
                         return callback(error, null)
-                    } else {
-                        return callback(null, results.affectedRows)
                     }
+                    conn.query('DELETE FROM film_actor WHERE actor_id = ?',
+                        [id],
+                        (error, result) => {
+                            if (error) {
+                                conn.end()
+                                return callback(error, null)
+                            }
+                            conn.query('DELETE FROM actor WHERE actor_id = ?', [id], (error, result) => {
+                                if (error) {
+                                    conn.end()
+                                    return callback(error, null)
+                                }
+                                var end = result
+                                conn.query('COMMIT', (error, result) => {
+                                    if (error) {
+                                        conn.end()
+                                        return callback(error, null)
+                                    }
+                                    conn.end()
+                                    return callback(null, end.affectedRows)
+                                })
+                            })
+                        })
                 })
             }
         })
