@@ -20,6 +20,7 @@ app.get('/actors/:actor_id', (req, res) => {
         } else if (result == null) {
             return res.status(204).send()
         } else {
+
             let end = result.map(({actor_id,first_name,last_name})=>({"actor_id":actor_id.toString(),"first_name":first_name,"last_name":last_name}))[0]
             return res.status(200).send(end)
         }
@@ -158,6 +159,24 @@ app.post('/customers', (req, res) => {
         }
     })
 })
+
+//Endpoint 9, POST a new rental and payment, Need 
+app.post('/rental',(req,res)=>{
+    const check = ["film_id","store_id","customer_id","staff_id","amount"]
+    user.rent(req.body,(err,result)=>{
+        if(err){
+            console.log(err)
+            return res.send()
+        }else{
+            console.log(result.length)
+            return res.send()
+        }
+    })
+})
+
+
+
+//Endpoint 10 Put a return date
 
 
 

@@ -220,6 +220,75 @@ var userDB = {
             }
         })
     },
+
+    //Two additional endpoints
+
+    //Endpoint 9
+
+    rent:(body,callback)=>{
+        var conn = db.getConnection()
+        conn.connect(err=>{
+            if(err){
+                return callback(err,null)
+            }else{
+
+                conn.query("BEGIN",(error,result)=>{
+                    if(error){
+                        conn.end()
+                        return callback(error,null)
+                    }else{
+                        const sql1 = `select inventory.store_id,inventory.film_id,rental.* from inventory,rental,
+                        (select inventory_id,max(rental_date) as order_date
+                             from rental
+                             group by inventory_id) temp
+                          where rental.inventory_id=temp.inventory_id
+                          and rental.rental_date=temp.order_date
+                          and inventory.inventory_id = rental.inventory_id
+                          and inventory.film_id = ?
+                          and inventory.store_id = ?
+                          and rental.return_date < CURRENT_DATE();`
+                        conn.query(sql1,[body.film_id,body.store_id],(error,result)=>{
+                            //result.length will be the number of availble films for the given film id and store id
+                            if(error){
+                                conn.end()
+                                return callback(error,null)
+                            }
+                            if (result == 0){
+                                conn.end()
+                                return callback("NO_STOCK",null)
+                            }
+                            conn.query("INSERT INTO rental (rental_date,inventory_id,customer_id,staff_id VALUES (CURRENT_TIMESTAMP,?,?,?)",[result[0].inventory_id,body.customer_id,body.staff_id],(error,result)=>{
+                                if(error){
+                                    conn.end()
+                                    return callback(error,null)
+                                }
+
+                                conn.query("INSERT INTO payment (customer_id,staff_id,rental_id,amount,payment_date VALUES (?,?,?,?,CURRENT_TIMESTAMP))",[body.customer_id,body.staff_id,result.insertId,body.amount],(error,result)=>{
+                                    if(error){
+                                        conn.end()
+                                        return callback(error,null)
+                                    }
+
+                                    var end = result.insertId
+
+                                    conn.query("COMMIT",(error,result)=>{
+                                        if(error){
+                                            conn.end()
+                                            return callback(error,null)
+                                        }else{
+                                            return callback(null,end)
+                                        }
+                                    })
+                                })
+                            })
+
+
+                        })
+                    }
+                })
+            }
+        })
+    }
 }
 
 module.exports = userDB
