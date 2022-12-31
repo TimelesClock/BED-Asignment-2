@@ -247,36 +247,40 @@ var userDB = {
                           and inventory.film_id = ?
                           and inventory.store_id = ?
                           and rental.return_date < CURRENT_DATE();`
-                        conn.query(sql1,[body.film_id,body.store_id],(error,result)=>{
+                        conn.query(sql1,[body.film_id,body.store_id],(error,result1)=>{
                             //result.length will be the number of availble films for the given film id and store id
                             if(error){
                                 conn.end()
                                 return callback(error,null)
                             }
-                            if (result == 0){
+                            if (result1.length == 0){
                                 conn.end()
                                 return callback("NO_STOCK",null)
                             }
-                            conn.query("INSERT INTO rental (rental_date,inventory_id,customer_id,staff_id VALUES (CURRENT_TIMESTAMP,?,?,?)",[result[0].inventory_id,body.customer_id,body.staff_id],(error,result)=>{
+
+                            conn.query("INSERT INTO rental (rental_date,inventory_id,customer_id,staff_id) VALUES (?,?,?,?)",[new Date().toISOString().slice(0, 19).replace('T', ' '),result1[0].inventory_id,body.customer_id,body.staff_id],(error,result2)=>{
                                 if(error){
                                     conn.end()
                                     return callback(error,null)
                                 }
 
-                                conn.query("INSERT INTO payment (customer_id,staff_id,rental_id,amount,payment_date VALUES (?,?,?,?,CURRENT_TIMESTAMP))",[body.customer_id,body.staff_id,result.insertId,body.amount],(error,result)=>{
+                                var rental = result2.insertId
+                                conn.query("INSERT INTO payment (customer_id,staff_id,rental_id,amount,payment_date) VALUES (?,?,?,?,?)",[body.customer_id,body.staff_id,result2.insertId,body.amount,new Date().toISOString().slice(0, 19).replace('T', ' ')],(error,result3)=>{
                                     if(error){
                                         conn.end()
                                         return callback(error,null)
                                     }
 
-                                    var end = result.insertId
+                                    var payment = result3.insertId
 
-                                    conn.query("COMMIT",(error,result)=>{
+                                    conn.query("COMMIT",(error,result4)=>{
                                         if(error){
                                             conn.end()
                                             return callback(error,null)
                                         }else{
-                                            return callback(null,end)
+                                            conn.end()
+
+                                            return callback(null,[rental,payment])
                                         }
                                     })
                                 })

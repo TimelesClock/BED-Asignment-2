@@ -163,13 +163,23 @@ app.post('/customers', (req, res) => {
 //Endpoint 9, POST a new rental and payment, Need 
 app.post('/rental',(req,res)=>{
     const check = ["film_id","store_id","customer_id","staff_id","amount"]
+    for (var i of check){
+        if (req.body[i] == null){
+            return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
+        }
+    }
+
     user.rent(req.body,(err,result)=>{
         if(err){
-            console.log(err)
-            return res.send()
+            if (err == "NO_STOCK"){
+                res.type('json').status(400).send({"error_msg":"No Stock"})
+            }else{
+                console.log(err)
+                return res.type('json').status(500).send(err_msg)
+            }
+            
         }else{
-            console.log(result.length)
-            return res.send()
+            return res.type('json').status(201).send(JSON.stringify({ "rental_id": result[0],"payment_id":result[1] }))
         }
     })
 })
