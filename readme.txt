@@ -40,3 +40,15 @@ Currently the server has 8 endpoints, being:
 6. GET /film_categories/:category_id/films
 7. GET /customer/:customer_id/payment
 8. POST /customers
+
+With 2 additional endpoints being
+9. POST /rental
+10. POST /staff
+
+
+Ensure that the server is running and it displays "Web App Hosted at http://localhost:8081"
+before testing the endpoints on PostMan
+
+
+Postman link for the endpoints, Sign in to postman and fork the collection.
+https://www.postman.com/timelesclock/workspace/bed-assignment-1/collection/24074599-477b3413-fa47-4b52-a162-87c012ffbfbc?action=share&creator=24074599

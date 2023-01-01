@@ -1,6 +1,7 @@
 var db = require('./databaseConfig.js')
 
 var userDB = {
+    //Endpoint 1
     get_actor: (actor_id, callback) => {
         var conn = db.getConnection()
         conn.connect((err) => {
@@ -25,7 +26,7 @@ var userDB = {
 
 
     },
-
+    //endpoint 2
     get_actors: (limit, offset, callback) => {
         var conn = db.getConnection()
         conn.connect((err) => {
@@ -45,7 +46,7 @@ var userDB = {
             }
         })
     },
-
+    //endpoint 3
     new_actor: (actor, callback) => {
         var conn = db.getConnection()
         conn.connect((err) => {
@@ -67,7 +68,7 @@ var userDB = {
             }
         })
     },
-
+    //endpoint 4
     update_actor: (actor, id, callback) => {
         var conn = db.getConnection()
         conn.connect((err) => {
@@ -86,7 +87,7 @@ var userDB = {
             }
         })
     },
-
+    //endpoint 5
     delete_actor: (id, callback) => {
         var conn = db.getConnection()
         conn.connect((err) => {
@@ -125,7 +126,7 @@ var userDB = {
             }
         })
     },
-
+    //enmdpoint 6
     get_films: (id, callback) => {
         var conn = db.getConnection()
         conn.connect((err) => {
@@ -144,7 +145,7 @@ var userDB = {
             }
         })
     },
-
+    //endpoint 7
     get_payment: (id, start, end, callback) => {
         var conn = db.getConnection()
         conn.connect((err) => {
@@ -171,7 +172,7 @@ var userDB = {
             }
         })
     },
-
+    //endpoint 8
     new_customer: (body, address, callback) => {
         var conn = db.getConnection()
         conn.connect((err) => {
@@ -225,18 +226,18 @@ var userDB = {
 
     //Endpoint 9
 
-    rent:(body,callback)=>{
+    rent: (body, callback) => {
         var conn = db.getConnection()
-        conn.connect(err=>{
-            if(err){
-                return callback(err,null)
-            }else{
+        conn.connect(err => {
+            if (err) {
+                return callback(err, null)
+            } else {
 
-                conn.query("BEGIN",(error,result)=>{
-                    if(error){
+                conn.query("BEGIN", (error, result) => {
+                    if (error) {
                         conn.end()
-                        return callback(error,null)
-                    }else{
+                        return callback(error, null)
+                    } else {
                         const sql1 = `select inventory.store_id,inventory.film_id,rental.* from inventory,rental,
                         (select inventory_id,max(rental_date) as order_date
                              from rental
@@ -247,40 +248,40 @@ var userDB = {
                           and inventory.film_id = ?
                           and inventory.store_id = ?
                           and rental.return_date < CURRENT_DATE();`
-                        conn.query(sql1,[body.film_id,body.store_id],(error,result1)=>{
+                        conn.query(sql1, [body.film_id, body.store_id], (error, result1) => {
                             //result.length will be the number of availble films for the given film id and store id
-                            if(error){
+                            if (error) {
                                 conn.end()
-                                return callback(error,null)
+                                return callback(error, null)
                             }
-                            if (result1.length == 0){
+                            if (result1.length == 0) {
                                 conn.end()
-                                return callback("NO_STOCK",null)
+                                return callback("NO_STOCK", null)
                             }
 
-                            conn.query("INSERT INTO rental (rental_date,inventory_id,customer_id,staff_id) VALUES (?,?,?,?)",[new Date().toISOString().slice(0, 19).replace('T', ' '),result1[0].inventory_id,body.customer_id,body.staff_id],(error,result2)=>{
-                                if(error){
+                            conn.query("INSERT INTO rental (rental_date,inventory_id,customer_id,staff_id) VALUES (?,?,?,?)", [new Date().toISOString().slice(0, 19).replace('T', ' '), result1[0].inventory_id, body.customer_id, body.staff_id], (error, result2) => {
+                                if (error) {
                                     conn.end()
-                                    return callback(error,null)
+                                    return callback(error, null)
                                 }
 
                                 var rental = result2.insertId
-                                conn.query("INSERT INTO payment (customer_id,staff_id,rental_id,amount,payment_date) VALUES (?,?,?,?,?)",[body.customer_id,body.staff_id,result2.insertId,body.amount,new Date().toISOString().slice(0, 19).replace('T', ' ')],(error,result3)=>{
-                                    if(error){
+                                conn.query("INSERT INTO payment (customer_id,staff_id,rental_id,amount,payment_date) VALUES (?,?,?,?,?)", [body.customer_id, body.staff_id, result2.insertId, body.amount, new Date().toISOString().slice(0, 19).replace('T', ' ')], (error, result3) => {
+                                    if (error) {
                                         conn.end()
-                                        return callback(error,null)
+                                        return callback(error, null)
                                     }
 
                                     var payment = result3.insertId
 
-                                    conn.query("COMMIT",(error,result4)=>{
-                                        if(error){
+                                    conn.query("COMMIT", (error, result4) => {
+                                        if (error) {
                                             conn.end()
-                                            return callback(error,null)
-                                        }else{
+                                            return callback(error, null)
+                                        } else {
                                             conn.end()
 
-                                            return callback(null,[rental,payment])
+                                            return callback(null, [rental, payment])
                                         }
                                     })
                                 })
@@ -289,6 +290,57 @@ var userDB = {
 
                         })
                     }
+                })
+            }
+        })
+    },
+    //endpoint 10
+    new_staff: (body, address, callback) => {
+        var conn = db.getConnection()
+        conn.connect((err) => {
+            if (err) {
+                return callback(err, null)
+            } else {
+                conn.query('BEGIN', (error, result) => {
+                    if (error) {
+                        conn.end()
+                        return callback(error, null)
+                    }
+                    conn.query('INSERT into address(address,address2,district,city_id,postal_code,phone) VALUES (?,?,?,?,?,?)',
+                        [address.address_line1,
+                        address.address_line2,
+                        address.district,
+                        address.city_id,
+                        address.postal_code,
+                        address.phone],
+                        (error, result) => {
+                            if (error) {
+                                conn.end()
+                                return callback(error, null)
+                            }
+                            conn.query('INSERT INTO staff(first_name,last_name,address_id,email,store_id,active,username,password) VALUES (?,?,LAST_INSERT_ID(),?,?,1,?,SHA1(?))', [
+                                body.first_name,
+                                body.last_name,
+                                body.email,
+                                body.store_id,
+                                body.username,
+                                body.password
+                            ], (error, result) => {
+                                if (error) {
+                                    conn.end()
+                                    return callback(error, null)
+                                }
+                                var end = result
+                                conn.query('COMMIT', (error, result) => {
+                                    if (error) {
+                                        conn.end()
+                                        return callback(error, null)
+                                    }
+                                    conn.end()
+                                    return callback(null, end.insertId)
+                                })
+                            })
+                        })
                 })
             }
         })
