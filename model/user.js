@@ -1,3 +1,6 @@
+//Class: DIT/FT/1B/02
+//Name: Leong Yu Zhi Andy
+//Admission Number: P2205865
 var db = require('./databaseConfig.js')
 
 var userDB = {
