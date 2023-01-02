@@ -74,7 +74,7 @@ app.put('/actors/:actor_id', (req, res) => {
         return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
     }
 
-    if (!req.body.first_name || !req.body.last_name){
+    if (req.body.first_name == "" && req.body.last_name == ""){
         return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
     }
     user.update_actor(req.body, id, (err, result) => {
