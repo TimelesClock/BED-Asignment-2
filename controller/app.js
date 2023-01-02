@@ -70,7 +70,11 @@ app.post('/actors/', (req, res) => {
 //Endpoint 4
 app.put('/actors/:actor_id', (req, res) => {
     const id = req.params.actor_id
-    if (req.body.first_name == null && req.body.last_name == null) {
+    if (!req.body.first_name && !req.body.last_name) {
+        return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
+    }
+
+    if (!req.body.first_name || !req.body.last_name){
         return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
     }
     user.update_actor(req.body, id, (err, result) => {
