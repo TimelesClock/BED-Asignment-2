@@ -122,10 +122,43 @@ app.delete('/actors/:actor_id', async (req, res) => {
 
 })
 //Endpoint 6
+app.get('/films', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 24;
+        const offset = parseInt(req.query.offset) || 0;
+        const search = req.query.search || " ";
+        console.log(search)
+        const response = await query("SELECT f.*,c.category_id,c.name FROM film f ,film_category fc, category c WHERE f.film_id = fc.film_id AND fc.category_id = c.category_id AND f.title LIKE ? LIMIT ? OFFSET ? ",
+        ["%"+search+"%",limit,offset])
+
+        return res.status(200).json(response)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(err_msg)
+    }
+
+})
+
+app.get('/categories', async (req, res) => {
+    try {
+        const response = await query("SELECT category_id,name FROM category ")
+
+        return res.status(200).json(response)
+    }catch(error){
+        console.log(error)
+        return res.status(500).json(err_msg)
+    }
+    
+})
+
 app.get('/film_categories/:category_id/films', async (req, res) => {
     try {
-        const id = req.params.category_id
-        const response = await user.get_films(id)
+        const limit = parseInt(req.query.limit) || 24;
+        const offset = parseInt(req.query.offset) || 0;
+        const search = req.query.search || "";
+        const id = parseInt(req.params.category_id)
+
+        const response = await user.get_films(limit,offset,search,id)
 
         return res.status(200).json(response)
     } catch (error) {
@@ -277,7 +310,7 @@ app.post("/login/", async (req, res) => {
         }
 
         const payload = { user_id: response[0].staff_id };
-        jwt.sign(payload, JWT_SECRET, { algorithm: "HS256",expiresIn:"24h" }, (error,
+        jwt.sign(payload, JWT_SECRET, { algorithm: "HS256", expiresIn: "24h" }, (error,
             token) => {
             if (error) {
                 console.log(error);

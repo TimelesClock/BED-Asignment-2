@@ -10,9 +10,17 @@ app.get("/users/", (req, res) => {
     res.sendFile("/public/users.html", { root: __dirname });
 });
 
+app.get("/test", (req, res) => {
+    res.sendFile("/public/test.html", { root: __dirname })
+})
+
+app.get("/test2", (req, res) => {
+    res.sendFile("/public/test2.html", { root: __dirname })
+})
+
 app.get("/login/", (req, res) => {
     res.sendFile("/public/login.html", { root: __dirname });
-    });
+});
 const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Client server has started listening on port ${PORT}`);
