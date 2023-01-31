@@ -10,8 +10,8 @@ app.get("/users/", (req, res) => {
     res.sendFile("/public/users.html", { root: __dirname });
 });
 
-app.get("/test", (req, res) => {
-    res.sendFile("/public/test.html", { root: __dirname })
+app.get("/stores", (req, res) => {
+    res.sendFile("/public/stores.html", { root: __dirname })
 })
 
 app.get("/test2", (req, res) => {

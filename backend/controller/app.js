@@ -122,14 +122,31 @@ app.delete('/actors/:actor_id', async (req, res) => {
 
 })
 //Endpoint 6
+
+app.get('/categories', async (req, res) => {
+    try {
+        const response = await query("SELECT category_id,name FROM category ")
+
+        return res.status(200).json(response)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(err_msg)
+    }
+
+})
 app.get('/films', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 24;
         const offset = parseInt(req.query.offset) || 0;
         const search = req.query.search || " ";
-        console.log(search)
-        const response = await query("SELECT f.*,c.category_id,c.name FROM film f ,film_category fc, category c WHERE f.film_id = fc.film_id AND fc.category_id = c.category_id AND f.title LIKE ? LIMIT ? OFFSET ? ",
-        ["%"+search+"%",limit,offset])
+        var maxNum
+        if (req.query.max == "-1") {
+            maxNum = null
+        } else {
+            maxNum = parseFloat(req.query.max)
+        }
+        const response = await query("SELECT f.*,c.category_id,c.name FROM film f ,film_category fc, category c WHERE f.film_id = fc.film_id AND fc.category_id = c.category_id AND f.title LIKE ? AND (? IS NULL OR f.rental_rate > ?) LIMIT ? OFFSET ? ",
+            ["%" + search + "%", maxNum, maxNum, limit, offset])
 
         return res.status(200).json(response)
     } catch (error) {
@@ -139,17 +156,7 @@ app.get('/films', async (req, res) => {
 
 })
 
-app.get('/categories', async (req, res) => {
-    try {
-        const response = await query("SELECT category_id,name FROM category ")
 
-        return res.status(200).json(response)
-    }catch(error){
-        console.log(error)
-        return res.status(500).json(err_msg)
-    }
-    
-})
 
 app.get('/film_categories/:category_id/films', async (req, res) => {
     try {
@@ -157,8 +164,14 @@ app.get('/film_categories/:category_id/films', async (req, res) => {
         const offset = parseInt(req.query.offset) || 0;
         const search = req.query.search || "";
         const id = parseInt(req.params.category_id)
+        var maxNum
+        if (req.query.max == "-1") {
+            maxNum = null
+        } else {
+            maxNum = parseFloat(req.query.max)
+        }
 
-        const response = await user.get_films(limit,offset,search,id)
+        const response = await user.get_films(limit, offset, maxNum, search, id)
 
         return res.status(200).json(response)
     } catch (error) {
@@ -258,7 +271,14 @@ app.post('/rental', async (req, res) => {
 
 })
 
-
+app.get('/stores', async (req, res) => {
+    try {
+        const response = await query("SELECT s.store_id,a.address,a.address2,a.district,a.postal_code,a.phone FROM store s,address a WHERE s.address_id = a.address_id")
+        return res.status(200).json(response)
+    } catch (error) {
+        return res.status(500).json(err_msg)
+    }
+})
 
 //Endpoint 10 Add a new staff
 app.post('/staff', async (req, res) => {

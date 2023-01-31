@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang='en-us'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <title>Films</title>
+</head>
+
+<body>
+    <div class="container-fluid my-5 p-3 ">
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <a class="page-link" href="/" id="HomeBtn">Home</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="/stores" id="StoreBtn">Stores</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="/login" id="LoginBtn">Login</a>
+                </li>
+            </ul>
+        </nav>
+        <div id="storeContainer" class = "col-10 mx-auto">
+
+        </div>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    const storeContainer = document.querySelector("#storeContainer")
+    axios.get("http://localhost:8081/stores")
+        .then(response => {
+
+            response.data.forEach(location => {
+                let locationDiv = document.createElement("div")
+                locationDiv.classList.add("col-md-10", "mb-3")
+                locationDiv.innerHTML = `
+                <div class = "card">
+                    <div class = "card-body">
+                        <p class = "card-title"><Strong>Store ${location.store_id}</Strong></p>
+                        <p class="card-text">Address 1: ${location.address}</p>
+                        <p class="card-text">Address 2: ${location.address2 || ""}</p>
+                        <p class="card-text">District: ${location.district}</p>
+                        <p class="card-text">Postal Code: ${location.postal_code}</p>
+                        <p class="card-text">Phone: ${location.phone}</p>
+                    </div>
+                </div>
+                `
+                storeContainer.appendChild(locationDiv)
+            })
+        })
+</script>
