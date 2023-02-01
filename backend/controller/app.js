@@ -2,7 +2,7 @@
 //Name: Leong Yu Zhi Andy
 //Admission Number: P2205865
 
-import express from 'express'
+import express, { response } from 'express'
 var app = express();
 import user from '../model/user.js'
 import bodyParser from 'body-parser'
@@ -121,7 +121,27 @@ app.delete('/actors/:actor_id', async (req, res) => {
     }
 
 })
-//Endpoint 6
+//Get film by film id
+
+app.get("/films/:film_id",async(req,res)=>{
+    try{
+        const id = parseInt(req.params.film_id)
+        const response = await query("SELECT f.*,c.category_id,c.name FROM film f ,film_category fc, category c WHERE f.film_id = fc.film_id AND fc.category_id = c.category_id AND f.title AND f.film_id = ? ",
+        [id]
+        )
+
+        if (response.length == 0){
+            res.status(204).send()
+        }else{
+            res.status(200).json(response)
+        }
+    }catch(error){
+        console.log(error)
+        res.status(500).json(err_msg)
+    }
+})
+
+
 
 app.get('/categories', async (req, res) => {
     try {

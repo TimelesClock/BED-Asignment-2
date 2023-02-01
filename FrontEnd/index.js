@@ -14,8 +14,8 @@ app.get("/stores", (req, res) => {
     res.sendFile("/public/stores.html", { root: __dirname })
 })
 
-app.get("/test", (req, res) => {
-    res.sendFile("/public/test.html", { root: __dirname })
+app.get("/details/:id", (req, res) => {
+    res.sendFile("/public/details.html", { root: __dirname })
 })
 
 app.get("/login/", (req, res) => {
