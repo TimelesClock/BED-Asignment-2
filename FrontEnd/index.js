@@ -14,8 +14,20 @@ app.get("/stores", (req, res) => {
     res.sendFile("/public/stores.html", { root: __dirname })
 })
 
-app.get("/details/:id", (req, res) => {
-    res.sendFile("/public/details.html", { root: __dirname })
+app.get("/films/:id", (req, res) => {
+    res.sendFile("/public/films.html", { root: __dirname })
+})
+
+app.get("/admin",(req,res)=>{
+    res.sendFile("/public/admin-main.html", { root: __dirname })
+})
+
+app.get("/admin/addCustomer",(req,res)=>{
+    res.sendFile("/public/admin-addCustomer.html", { root: __dirname })
+})
+
+app.get("/admin/addActor",(req,res)=>{
+    res.sendFile("/public/admin-addActor.html", { root: __dirname })
 })
 
 app.get("/login/", (req, res) => {

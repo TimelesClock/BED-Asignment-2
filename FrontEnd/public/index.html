@@ -4,14 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <title>Films</title>
 </head>
 
 <body>
-    <div class="container-fluid p-3 ">
+    <nav class="navbar navbar-light bg-light">
+        <span class="navbar-brand mb-0 h1">
+            <a href="#">SP DVD</a>
+        </span>
         <nav>
             <ul class="pagination justify-content-center">
                 <li class="page-item">
@@ -20,18 +23,21 @@
                 <li class="page-item">
                     <a class="page-link" href="/stores" id="StoreBtn">Stores</a>
                 </li>
-                <li class="page-item">
-                    <a class="page-link" href="/login" id="LoginBtn">Login</a>
-                </li>
             </ul>
         </nav>
+        <button id="admin-button" class="btn btn-outline-primary my-2 my-sm-0" type="button">
+            Admin Panel
+        </button>
+    </nav>
+    <div class="container-fluid p-3 ">
+        
         <div class="row mx-auto d-flex justify-content-center py-3">
-            <div class="form-group col-4">
+            <div class="form-group col-sm-10 col-xl-4">
                 <input type="text" class="form-control" id="search-bar" placeholder="Search films by title..." />
             </div>
-            <div class="form-group col-4 row ml-5">
+            <div class="form-group col-sm-10 col-xl-4 row ml-5">
                 <label for="maxNum" class="col-form-label">Max Price:</label>
-                <div class="col-sm-6">
+                <div class="col-sm-8 col-xl-6">
                     <input type="number" step=0.01 class="form-control" id="maxNum" placeholder="" />
                 </div>
 
@@ -42,10 +48,10 @@
         </div>
 
 
-        <div class="form-group col-5 mx-auto mb-5">
+        <div class="form-group col-5 mx-auto mb-5 ">
             <label for="sort-by-category">Search By Category</label>
-            <select title="yes" class="form-control" id="sort-by-category">
-                <option value="">Category</option>
+            <select title="yes" class="form-control position-absolute" id="sort-by-category">
+                <option value="">Any Category</option>
             </select>
         </div>
 
@@ -80,14 +86,31 @@
             </ul>
         </nav>
     </div>
+    <style>
+        #sort-by-category {
+          z-index: 999;
+        }
+      </style>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
+        document.getElementById("admin-button").addEventListener("click",(e)=>{
+            if (!localStorage.getItem("token")){
+                window.location.href = "/login"
+            }else{
+                window.location.href = "/admin"
+            }
+        })
+
         const searchBar = document.querySelector("#search-bar");
         const sortByCategory = document.querySelector("#sort-by-category");
         const filmsContainer = document.querySelector("#films-container");
         const searchBtn = document.querySelector("#searchBtn")
         const maxNum = document.querySelector("#maxNum")
+
+
+
+
 
         let currentPage = 1;
         let limit = 24;
@@ -167,7 +190,6 @@
 
                 maxNum.addEventListener("input", e => {
                     if (e.target.value) {
-                        console.log(maxNumber)
                         maxNumber = parseFloat(e.target.value)
                     } else {
                         maxNumber = -1
@@ -374,8 +396,12 @@
                             <div class="card-body">
                                 <h5 class="card-title">${film.title}</h5>
                                 <p class="card-text">Release Year: ${film.release_year}</p>
-                                <p class="card-text">Film Rating: ${film.rating}</p>
-                                <a href="#" class="btn btn-primary">View Details</a>
+                                <div class = "ml-1 mb-3 row">
+                                    <p class="card-text">Film Rating:</p>
+                                    <p class="ml-3 card-text border border-primary rounded-pill px-4 py-1">${film.rating}</p>
+                                </div>
+                                
+                                <a href="/films/${film.film_id}" class="btn btn-primary">View Details</a>
                             </div>
                             </div>
                         `;

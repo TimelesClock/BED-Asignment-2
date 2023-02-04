@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+
+    <title>SP DVD Admin Panel</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <span class="navbar-brand mb-0 h1">
+            <a href="/admin">SP DVD Admin Panel</a>
+        </span>
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <a class="page-link" href="/" id="HomeBtn">Home</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="/stores" id="StoreBtn">Stores</a>
+                </li>
+            </ul>
+        </nav>
+        <button id="logout-button" class="btn btn-outline-danger my-2 my-sm-0" type="button">
+            Logout
+        </button>
+    </nav>
+    <div class="container-fluid">
+        <h2>Sales</h2>
+        <div class="row">
+
+            <div class="col-md-2">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <a href="/admin">Sales</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="/admin/addCustomer">Add new customer</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="#edit-customer">Edit existing customer</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="#delete-customer">Delete existing customer</a>
+                    </li>
+                </ul>
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <a href="#add-film">Add new film</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="#edit-film">Edit existing film</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="#delete-film">Delete existing film</a>
+                    </li>
+                </ul>
+                <ul class="list-group"></ul>
+                <li class="list-group-item">
+                    <a href="/admin/addActor">Add new Actor</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="#edit-actor">Edit existing actor</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="#delete-actor">Delete existing Actor</a>
+                </li>
+                </ul>
+            </div>
+            <div class="col-md-10">
+                <h1>Sales</h1>
+                <div class="container mt-5">
+                    <div id="sales-graph"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Check if "token" is in localStorage
+        if (!localStorage.getItem("token")) {
+            // If not, redirect back to "/"
+            window.location.href = "/login";
+        }  // Logout button click event listener
+        document.getElementById("logout-button").addEventListener("click", function () {
+            // Remove "token" from localStorage
+            localStorage.removeItem("token");
+            // Redirect back to "/"
+            window.location.href = "/login";
+        });
+        var options = {
+            chart: {
+                type: 'line'
+            },
+            series: [{
+                name: 'Sales',
+                data: []
+            }],
+            xaxis: {
+                type: 'category'
+            },
+            yaxis: {
+                type: 'numeric'
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+            },
+            markers: {
+                size: 1,
+            }
+
+        }
+
+        var chart = new ApexCharts(document.querySelector("#sales-graph"), options);
+        const token = localStorage.getItem("token")
+        let headers = {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                }
+        }
+
+        axios.get('http://localhost:8081/sales',headers)
+            .then(function (response) {
+                var data = response.data;
+
+                options.series[0].data = data.map(function (d) {
+                    return {
+                        x: d.date.slice(0, 10),
+                        y: parseInt(d.total_sales)
+                    }
+                });
+                chart.render();
+            })
+            .catch(function (error) {
+                if (error.response.status == 401){
+                    alert("Token has either expired or is invalid, please login again")
+                    localStorage.removeItem("token");
+                    window.location.href = "/login"
+                }
+            });
+    </script>
+</body>
+
+</html>

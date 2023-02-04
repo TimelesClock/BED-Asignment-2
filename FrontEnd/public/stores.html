@@ -11,7 +11,10 @@
 </head>
 
 <body>
-    <div class="container-fluid my-5 p-3 ">
+    <nav class="navbar navbar-light bg-light">
+        <span class="navbar-brand mb-0 h1">
+            <a href="#">SP DVD</a>
+        </span>
         <nav>
             <ul class="pagination justify-content-center">
                 <li class="page-item">
@@ -20,18 +23,28 @@
                 <li class="page-item">
                     <a class="page-link" href="/stores" id="StoreBtn">Stores</a>
                 </li>
-                <li class="page-item">
-                    <a class="page-link" href="/login" id="LoginBtn">Login</a>
-                </li>
             </ul>
         </nav>
-        <div id="storeContainer" class = "col-10 mx-auto">
+        <button id="admin-button" class="btn btn-outline-primary my-2 my-sm-0" type="button">
+            Admin Panel
+        </button>
+    </nav>
+    <div class="container-fluid my-5 p-3 ">
+
+        <div id="storeContainer" class="col-10 mx-auto">
 
         </div>
     </div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
+    document.getElementById("admin-button").addEventListener("click", (e) => {
+        if (!localStorage.getItem("token")) {
+            window.location.href = "/login"
+        } else {
+            window.location.href = "/admin"
+        }
+    })
     const storeContainer = document.querySelector("#storeContainer")
     axios.get("http://localhost:8081/stores")
         .then(response => {
