@@ -98,6 +98,14 @@
             </div>
         </div>
         <div class="container">
+            <form>
+                <div class="form-group">
+                    <label for="select">Select existing film:</label>
+                    <select class="selectpicker form-control" data-live-search="true" id="filmBar">
+                        <option value=0>Select a film</option>
+                    </select>
+                </div>
+            </form>
             <form id="film-form" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="film-title">Title</label>
@@ -143,11 +151,11 @@
                 <div class="form-group">
                     <label for="film-rating">Rating</label>
                     <select type="text" class="form-control col-8" id="filmrating" name="rating" required>
-                        <option>G</option>
-                        <option>PG</option>
-                        <option>PG-13</option>
-                        <option>R</option>
-                        <option>NC-17</option>
+                        <option value="G">G</option>
+                        <option value="PG">PG</option>
+                        <option value="PG-13">PG-13</option>
+                        <option value="R">R</option>
+                        <option value="NC-17">NC-17</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -170,6 +178,7 @@
                 <div class="form-group">
                     <label for="filmImage">Upload Film Image</label>
                     <input type="file" class="form-control-file" id="filmImage">
+                    <div id="filmImageText"></div>
                 </div>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
@@ -192,13 +201,77 @@
             // Redirect back to "/"
             window.location.href = "/login";
         });
+        document.querySelector("#film-form").style.display = 'none'
         const token = localStorage.getItem("token")
         const langContainer = document.querySelector("#filmlanguageid")
+        const filmBar = document.querySelector("#filmBar")
         let headers = {
             headers: {
                 Authorization: 'Bearer ' + token
             }
         }
+
+        getData()
+        var filmArr
+        function getData() {
+            axios.get("http://localhost:8081/allFilms", headers)
+                .then(function (response) {
+                    filmArr = response.data
+                    response.data.forEach(function (film) {
+                        $("#filmBar").append(`<option data-subtext="Film ID: ${film.film_id}" value="${film.film_id}">${film.title}</option>`);
+                    });
+                    $("#filmBar").selectpicker("refresh")
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    if (error.response.status == 401) {
+                        alert("Token has either expired or is invalid, please login again")
+                        localStorage.removeItem("token");
+                        window.location.href = "/login"
+                    }
+                });
+        }
+
+        filmBar.addEventListener("change", (e) => {
+            if (e.target.value !== '0') {
+                let i = e.target.value
+                let data = filmArr.find(obj => parseInt(obj.film_id) === parseInt(i))
+                document.querySelector("#film-form").style.display = 'block'
+                document.getElementById("filmtitle").value = data.title
+                document.getElementById("category").value = data.category_id
+                document.getElementById("filmdescription").value = data.description
+                document.getElementById("filmreleaseyear").value = data.release_year
+                document.getElementById("filmlanguageid").value = data.language_id
+                document.getElementById("filmlength").value = data.length
+                document.getElementById("filmrentalduration").value = data.rental_duration
+                document.getElementById("filmrentalrate").value = data.rental_rate
+                document.getElementById("filmreplacementcost").value = data.replacement_cost
+                document.getElementById("filmrating").value = data.rating
+
+                document.getElementById("filmImageText").innerHTML = data.cloudinary_url || ""
+                $("#filmspecialfeatures").selectpicker('val', data.special_features.split(","))
+
+
+                axios.get(`http://localhost:8081/film_actor/${i}`)
+                    .then((response) => {
+                        let arr1 = []
+                        response.data.forEach((item) => {
+                            arr1.push(item.actor_id)
+                        })
+                        $("#actorBar").selectpicker('val', arr1)
+                        $('#actorBar').selectpicker('refresh');
+                    })
+                    .catch(error => {
+                        console.error(error)
+                    })
+                // document.getElementById("filmImage").value = data.title
+            } else {
+                console.log("goes here")
+                document.querySelector("#film-form").style.display = 'none'
+            }
+
+        })
+
         axios.get("http://localhost:8081/actors")
             .then(function (response) {
                 response.data.forEach(function (actor) {
@@ -264,17 +337,24 @@
             formData.append("filmspecialfeatures", $("#filmspecialfeatures").selectpicker('val').join(","))
             formData.append("actors", $("#actorBar").selectpicker('val'))
             formData.append("filmImage", filmImage);
-            axios
-                .post("http://localhost:8081/films", formData,headers)
+            axios.put(`http://localhost:8081/films/${filmBar.value}`, formData, headers)
                 .then((response) => {
-                    document.getElementById("formResponseModalLabel").innerText = "Film added Successfully";
-                    document.querySelector(".modal-body").innerText = `Film ${response.data.insertId} has been added successfully!`;
+                    document.getElementById("formResponseModalLabel").innerText = "Film edited Successfully";
+                    document.querySelector(".modal-body").innerText = `Film ${filmBar.value} has been edited successfully!`;
                     $("#formResponseModal").modal("show");
-                    
+                    document.querySelector("#film-form").style.display = 'none'
+                    let optionStart = document.createElement("option")
+                    optionStart.value = "0"
+                    optionStart.innerHTML = "Select a film"
+                    filmBar.innerHTML = ''
+                    filmBar.append(optionStart)
+                    $("#filmBar").selectpicker("refresh")
+                    document.getElementById("filmImage").value = ''
+                    getData()
                 })
                 .catch((error) => {
                     alert(error)
-                    
+
                 });
         });
     </script>

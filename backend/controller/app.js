@@ -119,7 +119,17 @@ app.post('/actors/', isLoggedInMiddleware, async (req, res) => {
     }
 })
 //Endpoint 4
-app.put('/actors/:actor_id', async (req, res) => {
+app.get("/customers", async (req, res) => {
+    try {
+        const response = await query("SELECT * FROM customer")
+        return res.status(200).json(response)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(err_msg)
+    }
+})
+
+app.put('/actors/:actor_id', isLoggedInMiddleware, async (req, res) => {
 
     try {
         const id = req.params.actor_id
@@ -191,7 +201,7 @@ app.get("/films/:film_id", async (req, res) => {
 app.get("/film_actor/:film_id", async (req, res) => {
     try {
         const id = parseInt(req.params.film_id)
-        const response = await query("SELECT a.first_name,a.last_name FROM actor a,film_actor fa WHERE fa.actor_id = a.actor_id AND fa.film_id = ?",
+        const response = await query("SELECT a.actor_id, a.first_name,a.last_name FROM actor a,film_actor fa WHERE fa.actor_id = a.actor_id AND fa.film_id = ?",
             [id]
         )
 
@@ -226,7 +236,7 @@ app.post("/films", isLoggedInMiddleware, upload.single("filmImage"), async (req,
         await query("START TRANSACTION")
         let response = await query(
             "INSERT INTO film (title, description, release_year,language_id,rental_duration,rental_rate,length,replacement_cost,rating,special_features,cloudinary_file_id, cloudinary_url) VALUES (?, ?, ?, ?,?,?,?,?,?,?,?,?)",
-            [filmtitle, filmdescription, filmreleaseyear, filmlanguageid, filmrentalduration, filmrentalrate, filmlength, filmreplacementcost, filmrating, filmspecialfeatures, cloudResponse.data.publicId || null, cloudResponse.data.url || null]);
+            [filmtitle, filmdescription, filmreleaseyear, filmlanguageid, filmrentalduration, filmrentalrate, filmlength, filmreplacementcost, filmrating, filmspecialfeatures, cloudResponse ? cloudResponse.data.publicId : null, cloudResponse? cloudResponse.data.url : null]);
 
         await query("INSERT INTO film_category (film_id,category_id) VALUES (?,?)",
             [response.insertId, category]
@@ -235,6 +245,56 @@ app.post("/films", isLoggedInMiddleware, upload.single("filmImage"), async (req,
             for (var i of actors) {
                 await query("INSERT INTO film_actor (actor_id,film_id) VALUES (?,?)",
                     [i, response.insertId]
+                )
+            }
+        }
+
+        await query("COMMIT")
+        return res.status(201).json(response)
+    } catch (error) {
+        console.log(error)
+        await query("ROLLBACK")
+        return res.status(500).json(err_msg)
+    }
+
+});
+
+app.put("/films/:film_id", isLoggedInMiddleware, upload.single("filmImage"), async (req, res) => {
+    try {
+        const film_id = parseInt(req.params.film_id)
+        const filmtitle = req.body.filmtitle;
+        const filmdescription = req.body.filmdescription;
+        const filmreleaseyear = req.body.filmreleaseyear
+        const filmlanguageid = req.body.filmlanguageid
+        const filmrentalduration = req.body.filmrentalduration
+        const filmrentalrate = req.body.filmrentalrate
+        const filmlength = req.body.filmlength
+        const filmreplacementcost = req.body.filmreplacementcost
+        const filmrating = req.body.filmrating
+        const filmspecialfeatures = req.body.filmspecialfeatures
+        const category = req.body.category
+        const actors = req.body.actors.split(",")
+
+        let cloudResponse = null
+        if (req.file) {
+            const filmImage = req.file;
+            cloudResponse = await uploadStreamToCloudinary(filmImage.buffer)
+        }
+
+        await query("START TRANSACTION")
+        let response = await query(
+            "UPDATE film SET title=?, description=?, release_year=?,language_id=?,rental_duration=?,rental_rate=?,length=?,replacement_cost=?,rating=?,special_features=?,cloudinary_file_id=?, cloudinary_url=? WHERE film_id = ?",
+            [filmtitle, filmdescription, filmreleaseyear, filmlanguageid, filmrentalduration, filmrentalrate, filmlength, filmreplacementcost, filmrating, filmspecialfeatures, cloudResponse ? cloudResponse.data.publicId : null, cloudResponse? cloudResponse.data.url : null,film_id]);
+
+        await query("DELETE FROM film_category WHERE film_id = ?",[film_id])
+        await query("INSERT INTO film_category (film_id,category_id) VALUES (?,?)",
+            [film_id, category]
+        )
+        await query("DELETE FROM film_actor WHERE film_id = ?",[film_id])
+        if (actors.toString() !== [''].toString()) {
+            for (var i of actors) {
+                await query("INSERT INTO film_actor (actor_id,film_id) VALUES (?,?)",
+                    [i, film_id]
                 )
             }
         }
@@ -270,6 +330,17 @@ app.get('/categories', async (req, res) => {
     }
 
 })
+
+app.get('/allFilms',isLoggedInMiddleware,async(req,res)=>{
+    try{
+        const response = await query("SELECT f.*,c.category_id,c.name FROM film f ,film_category fc, category c WHERE f.film_id = fc.film_id AND fc.category_id = c.category_id")
+        res.status(200).json(response)
+    }catch(error){
+        console.log(error)
+        res.status(500).json(err_msg)
+    }
+})
+
 app.get('/films', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 24;
@@ -404,7 +475,7 @@ app.post('/customers/:address_id', isLoggedInMiddleware, async (req, res) => {
             }
         }
 
-        let response = await query("SELECT email from customer WHERE email LIKE ?", [body.email])
+        let response = await query("SELECT email from customer WHERE email = ?", [body.email])
 
         if (response.length !== 0) {
             return res.status(409).json({
@@ -419,6 +490,45 @@ app.post('/customers/:address_id', isLoggedInMiddleware, async (req, res) => {
             body.email, address_id])
         return res.status(200).json({ customer_id: customer_response.insertId });
     } catch (error) {
+        console.log(error)
+        return res.status(500).json(err_msg)
+    }
+})
+
+app.put('/customers/:customer_id', isLoggedInMiddleware, async (req, res) => {
+    try {
+        const body = Object.assign({}, req.body)
+        let customer_id = req.params.customer_id
+        if (isNaN(customer_id)) {
+            return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
+        }
+        customer_id = parseInt(customer_id)
+        const check1 = ["store_id", "first_name", "last_name", "email"]
+        for (var i of check1) {
+            if (!body[i]) {
+
+                return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
+            }
+        }
+
+
+
+        let customer_response = await query('UPDATE customer SET store_id = ?,first_name =?,last_name=?,email=?,address_id=? WHERE customer_id = ?', [
+            body.store_id,
+            body.first_name,
+            body.last_name,
+            body.email,
+            body.address_id,
+            customer_id
+        ])
+        return res.status(200).json({ customer_id: customer_response.insertId });
+    } catch (error) {
+
+        if (error && error.code == 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                error_msg: "email already exist",
+            });
+        }
         console.log(error)
         return res.status(500).json(err_msg)
     }
@@ -456,6 +566,49 @@ app.post('/customers', isLoggedInMiddleware, async (req, res) => {
         let insertId = customer_response.insertId;
         return res.status(200).json({ customer_id: insertId });
     } catch (error) {
+        await query("ROLLBACK")
+        console.log(error)
+        return res.status(500).json(err_msg)
+    }
+})
+
+app.put('/customersA/:customer_id', isLoggedInMiddleware, async (req, res) => {
+    try {
+        const body = Object.assign({}, req.body)
+        const check1 = ["store_id", "first_name", "last_name", "email", "address"]
+        const check2 = ["address_line1", "address_line2", "district", "city_id", "postal_code", "phone"]
+        let customer_id = req.params.customer_id
+        for (var i of check1) {
+            if (!body[i]) {
+                return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
+            }
+        }
+        for (var i of check2) {
+            if (body.address[i] == null) {
+                return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
+            }
+        }
+
+        await query("START TRANSACTION")
+        let address_response = await user.addAddress(body.address)
+        let customer_response = await query('UPDATE customer SET store_id = ?,first_name =?,last_name=?,email=?,address_id=? WHERE customer_id = ?', [
+            body.store_id,
+            body.first_name,
+            body.last_name,
+            body.email,
+            address_response.insertId,
+            customer_id
+        ])
+        await query("COMMIT")
+
+        let insertId = customer_response.insertId;
+        return res.status(200).json({ customer_id: insertId });
+    } catch (error) {
+        if (error && error.code == 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                error_msg: "email already exist",
+            });
+        }
         await query("ROLLBACK")
         console.log(error)
         return res.status(500).json(err_msg)
@@ -509,6 +662,43 @@ app.post('/rental', async (req, res) => {
         return res.status(500).json(err_msg)
     }
 
+})
+
+app.delete("/actor/:actor_id",async (req,res)=>{
+    try{
+        const id = parseInt(req.params.actor_id)
+        await query ("START TRANSACTION")
+        await query("DELETE FROM film_actor WHERE actor_id = ?",[id])
+        await query("DELETE FROM actor WHERE actor_id = ?",[id])
+        await query("COMMIT")
+        return res.status(204).send()
+    }catch(error){
+        await query("ROLLBACK")
+        console.log(error)
+        res.status(500).json(err_msg)
+    }
+})
+
+app.delete("/films/:film_id",async (req,res)=>{
+    try{
+        const id = parseInt(req.params.film_id)
+        await query ("START TRANSACTION")
+        await query("DELETE FROM film_text WHERE film_id = ?",[id])
+        const response = await query("SELECT inventory_id FROM inventory WHERE inventory.film_id = ?",[id])
+        for (var i of response){
+            await query("DELETE FROM rental WHERE inventory_id = ?",[i.inventory_id])
+        }
+        await query("DELETE FROM inventory WHERE film_id = ?",[id])
+        await query("DELETE FROM film_category WHERE film_id = ?",[id])
+        await query("DELETE FROM film_actor WHERE film_id = ?",[id])
+        await query("DELETE FROM film WHERE film_id = ?",[id])
+        await query("COMMIT")
+        return res.status(204).send()
+    }catch(error){
+        await query("ROLLBACK")
+        console.log(error)
+        res.status(500).json(err_msg)
+    }
 })
 
 app.get('/stores', async (req, res) => {

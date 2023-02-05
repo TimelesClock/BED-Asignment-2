@@ -21,9 +21,31 @@ app.get("/films/:id", (req, res) => {
 app.get("/admin",(req,res)=>{
     res.sendFile("/public/admin-main.html", { root: __dirname })
 })
+app.get("/admin/editActor",(req,res)=>{
+    res.sendFile("/public/admin-editActor.html", { root: __dirname })
+})
+app.get("/admin/editFilm",(req,res)=>{
+    res.sendFile("/public/admin-editFilm.html", { root: __dirname })
+})
 
 app.get("/admin/addCustomer",(req,res)=>{
     res.sendFile("/public/admin-addCustomer.html", { root: __dirname })
+})
+
+app.get("/admin/editCustomer",(req,res)=>{
+    res.sendFile("/public/admin-editCustomer.html", { root: __dirname })
+})
+
+app.get("/admin/deleteCustomer",(req,res)=>{
+    res.sendFile("/public/admin-deleteCustomer.html", { root: __dirname })
+})
+
+app.get("/admin/deleteActor",(req,res)=>{
+    res.sendFile("/public/admin-deleteActor.html", { root: __dirname })
+})
+
+app.get("/admin/deleteFilm",(req,res)=>{
+    res.sendFile("/public/admin-deleteFilm.html", { root: __dirname })
 })
 
 app.get("/admin/addFilm",(req,res)=>{

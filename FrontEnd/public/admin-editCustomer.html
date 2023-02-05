@@ -23,7 +23,7 @@
 <body>
     <nav class="navbar navbar-light bg-light">
         <span class="navbar-brand mb-0 h1">
-            <a href = "/admin">SP DVD Admin Panel</a>
+            <a href="/admin">SP DVD Admin Panel</a>
         </span>
         <nav>
             <ul class="pagination justify-content-center">
@@ -40,7 +40,7 @@
         </button>
     </nav>
     <div class="container-fluid">
-        <h2>Add a new customer</h2>
+        <h2>Edit a existing customer</h2>
         <div class="row">
 
             <div class="col-md-2">
@@ -103,30 +103,41 @@
                     </div>
                 </div>
                 <form>
+
                     <div class="form-group">
-                        <label for="store_id">Store</label>
-                        <select id="store_id" name="store_id" class="form-control selectpicker" required>
-                            <option value="">Please select a store</option>
+                        <label for="select">Select existing customer:</label>
+                        <select class="selectpicker form-control" data-live-search="true" id="customerBar">
+                            <option value=0>Select a customer</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="first_name">First Name:</label>
-                        <input type="text" class="form-control" id="first_name" name="first_name" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="last_name">Last Name:</label>
-                        <input type="text" class="form-control" id="last_name" name="last_name" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="addressBar">Select or create an address:</label>
-                        <select id="addressBar" name="addressBar" class="selectpicker col-md-12" data-live-search="true"
-                            title="Please select an address" required>
-                            <option data-icon="	fa fa-plus" value="0">Create a new address</option>
-                        </select>
+                </form>
+                <form>
+                    <div id="custInput">
+                        <div class="form-group">
+                            <label for="store_id">Store</label>
+                            <select id="store_id" name="store_id" class="form-control test selectpicker" required>
+                                <option value="">Please select a store</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="first_name">First Name:</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Last Name:</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" class="form-control" id="email" name="email" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="addressBar">Select or create an address:</label>
+                            <select id="addressBar" name="addressBar" class="selectpicker col-md-12"
+                                data-live-search="true" title="Please select an address" required>
+                                <option data-icon="	fa fa-plus" value="0">Create a new address</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group" id="addrInput">
                         <div class="form-group">
@@ -185,8 +196,10 @@
         });
         const token = localStorage.getItem("token")
         const addressBar = document.querySelector("#addressBar")
+        const customerBar = document.querySelector("#customerBar")
         const submit = document.querySelector("#submit")
         var addressArray = []
+        var customerArr = []
 
         submit.addEventListener("click", e => {
             let check = ["store_id", "first_name", "last_name", "email", "addressBar"]
@@ -210,12 +223,13 @@
                     "store_id": $("#store_id").val(),
                     "first_name": $("#first_name").val(),
                     "last_name": $("#last_name").val(),
-                    "email": $("#email").val()
+                    "email": $("#email").val(),
+                    "address_id": addressBar.value
                 }
-                axios.post(`http://localhost:8081/customers/${addressBar.value}`, payload, headers)
+                axios.put(`http://localhost:8081/customers/${document.querySelector("#customerBar").value}`, payload, headers)
                     .then((response) => {
-                        document.getElementById("formResponseModalLabel").innerText = "Customer added Successfully";
-                        document.querySelector(".modal-body").innerText = `Customer ${response.data.customer_id} has been added successfully!`;
+                        document.getElementById("formResponseModalLabel").innerText = "Customer edited Successfully";
+                        document.querySelector(".modal-body").innerText = `Customer ${document.querySelector("#customerBar").value} has been edited successfully!`;
                         for (var i of check) {
                             document.getElementById(i).value = ""
                         }
@@ -224,6 +238,18 @@
                         }
                         $("#addressBar").selectpicker("refresh")
                         $("#city").selectpicker("refresh")
+                        customerBar.innerHTML = ""
+                        let optionStart = document.createElement("option")
+                        optionStart.value = "0"
+                        optionStart.innerHTML = "Select an actor"
+                        customerBar.append(optionStart)
+                        document.querySelector("#customerBar").value = '0'
+                        getData()
+                        $("#customerBar").selectpicker("refresh")
+                        document.querySelector("#custInput").style.display = 'none'
+                        document.querySelector("#addrInput").style.display = 'none'
+                        document.querySelector("#submit").style.display = 'none'
+                        $("#addrInput :input").attr("disabled", true);
                     })
                     .catch((error) => {
                         console.error(error)
@@ -260,16 +286,41 @@
                 }
 
 
-                axios.post(`http://localhost:8081/customers`, payload, headers)
+                axios.put(`http://localhost:8081/customersA/${customerBar.value}`, payload, headers)
                     .then((response) => {
-                        document.getElementById("formResponseModalLabel").innerText = "Customer added Successfully";
-                        document.querySelector(".modal-body").innerText = `Customer ${response.data.customer_id} has been added successfully!`;
+                        document.getElementById("formResponseModalLabel").innerText = "Customer edited Successfully";
+                        document.querySelector(".modal-body").innerText = `Customer ${customerBar.value} has been edited successfully!`;
                         for (var i of check) {
                             document.getElementById(i).value = ""
                         }
                         for (var i of check2) {
                             document.getElementById(i).value = ""
                         }
+                        customerBar.innerHTML = ""
+                        let optionStart = document.createElement("option")
+                        optionStart.value = "0"
+                        optionStart.innerHTML = "Select an actor"
+                        customerBar.append(optionStart)
+
+                        addressBar.innerHTML = ""
+                        let optionStart2 = document.createElement("option")
+                        optionStart2.value = "0"
+                        optionStart2.innerHTML = "Create an address"
+                        addressBar.append(optionStart2)
+
+                        document.querySelector("#customerBar").value = '0'
+                        document.getElementById("store_id").value = ''
+                        document.getElementById("first_name").value = ''
+                        document.getElementById("last_name").value = ''
+                        document.getElementById("email").value = ''
+                        document.getElementById("addressBar").value = '0'
+
+                        getData()
+                        $("#customerBar").selectpicker("refresh")
+                        document.querySelector("#custInput").style.display = 'none'
+                        document.querySelector("#addrInput").style.display = 'none'
+                        document.querySelector("#submit").style.display = 'none'
+                        $("#addrInput :input").attr("disabled", true);
                         $("#addressBar").selectpicker("refresh")
                         $("#city").selectpicker("refresh")
                     })
@@ -286,10 +337,46 @@
             }
         })
 
-        addressBar.addEventListener("change", e => {
-            if (e.target.value != 0) {
+        document.querySelector("#customerBar").addEventListener("change", e => {
+            if (e.target.value !== "0") {
                 let i = e.target.value
-                let data = addressArray.find(obj => obj.address_id === parseInt(i))
+                let data = customerArr.find(obj => parseInt(obj.customer_id) === parseInt(i))
+
+                document.getElementById("store_id").value = data.store_id
+                document.getElementById("first_name").value = data.first_name
+                document.getElementById("last_name").value = data.last_name
+                document.getElementById("email").value = data.email
+                document.getElementById("addressBar").value = data.address_id
+                document.querySelector("#custInput").style.display = 'block'
+                document.querySelector("#addrInput").style.display = 'block'
+                document.querySelector("#submit").style.display = 'block'
+                let addr = addressArray.find(obj => parseInt(obj.address_id) === parseInt(data.address_id))
+                document.getElementById("address").value = addr.address;
+                document.getElementById("address2").value = addr.address2 || "";
+                document.getElementById("district").value = addr.district;
+                document.getElementById("city").value = addr.city_id;
+                $("#city").selectpicker("refresh")
+                document.getElementById("postalcode").value = addr.postal_code;
+                document.getElementById("phone").value = addr.phone || "";
+                $("#store_id").selectpicker("refresh")
+                $("#addressBar").selectpicker("refresh")
+
+            } else {
+                document.getElementById("store_id").value = ''
+                document.getElementById("first_name").value = ''
+                document.getElementById("last_name").value = ''
+                document.getElementById("email").value = ''
+                document.getElementById("addressBar").value = ''
+                document.querySelector("#custInput").style.display = 'none'
+                document.querySelector("#addrInput").style.display = 'none'
+                document.querySelector("#submit").style.display = 'none'
+            }
+        })
+
+        addressBar.addEventListener("change", e => {
+            if (e.target.value !== "0") {
+                let i = e.target.value
+                let data = addressArray.find(obj => parseInt(obj.address_id) === parseInt(i))
                 document.getElementById("address").value = data.address;
                 document.getElementById("address2").value = data.address2 || "";
                 document.getElementById("district").value = data.district;
@@ -310,9 +397,28 @@
             }
         })
 
+        function getData() {
+            axios.get("http://localhost:8081/customers")
+                .then(function (response) {
+                    customerArr = response.data
+                    response.data.forEach(function (customer) {
+                        $("#customerBar").append(`<option data-subtext="Customer ID: ${customer.customer_id}" value="${customer.customer_id}">${customer.first_name} ${customer.last_name}</option>`);
+                    });
+                    $("#customerBar").selectpicker("refresh")
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+        }
+
 
         $(document).ready(function () {
+            getData()
+            document.querySelector("#custInput").style.display = 'none'
+            document.querySelector("#addrInput").style.display = 'none'
+            document.querySelector("#submit").style.display = 'none'
             $("#addrInput :input").attr("disabled", true);
+
             axios.get("http://localhost:8081/city")
                 .then(function (response) {
                     response.data.forEach(function (city) {
@@ -323,6 +429,8 @@
                 .catch(function (error) {
                     console.error(error);
                 });
+
+
 
 
             axios.get("http://localhost:8081/address")
@@ -349,24 +457,6 @@
                     console.error(error);
                 });
 
-            $("#add-customer-form").submit(function (event) {
-                event.preventDefault();
 
-                const data = {
-                    store_id: $("#store_id").val(),
-                    first_name: $("#first_name").val(),
-                    last_name: $("#last_name").val(),
-                    email: $("#email").val(),
-                    address_id: $("#address").val(),
-                };
-
-                axios.post("http://localhost:8081/customers", data)
-                    .then(function (response) {
-                        alert("Customer added successfully");
-                    })
-                    .catch(function (error) {
-                        console.error(error);
-                    });
-            });
         });
     </script>
