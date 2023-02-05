@@ -664,7 +664,7 @@ app.post('/rental', async (req, res) => {
 
 })
 
-app.delete("/actor/:actor_id",async (req,res)=>{
+app.delete("/actor/:actor_id",isLoggedInMiddleware,async (req,res)=>{
     try{
         const id = parseInt(req.params.actor_id)
         await query ("START TRANSACTION")
@@ -679,7 +679,7 @@ app.delete("/actor/:actor_id",async (req,res)=>{
     }
 })
 
-app.delete("/films/:film_id",async (req,res)=>{
+app.delete("/films/:film_id",isLoggedInMiddleware,async (req,res)=>{
     try{
         const id = parseInt(req.params.film_id)
         await query ("START TRANSACTION")
@@ -694,6 +694,21 @@ app.delete("/films/:film_id",async (req,res)=>{
         await query("DELETE FROM film WHERE film_id = ?",[id])
         await query("COMMIT")
         return res.status(204).send()
+    }catch(error){
+        await query("ROLLBACK")
+        console.log(error)
+        res.status(500).json(err_msg)
+    }
+})
+
+app.delete("/customers/:customer_id",isLoggedInMiddleware,async (req,res)=>{
+    try{
+        const id = parseInt(req.params.customer_id)
+        await query("START TRANSACTION")
+        await query("DELETE FROM rental WHERE customer_id = ?",[id])
+        await query("DELETE FROM customer WHERE customer_id = ?",[id])
+        await query("COMMIT")
+
     }catch(error){
         await query("ROLLBACK")
         console.log(error)
