@@ -78,10 +78,10 @@
 
     </div>
     <script defer>
-        document.getElementById("admin-button").addEventListener("click",(e)=>{
-            if (!localStorage.getItem("token")){
+        document.getElementById("admin-button").addEventListener("click", (e) => {
+            if (!localStorage.getItem("token")) {
                 window.location.href = "/login"
-            }else{
+            } else {
                 window.location.href = "/admin"
             }
         })
@@ -107,7 +107,14 @@
         axios.get(`http://localhost:8081/films/${id}`)
             .then(response => {
                 const film = response.data[0];
-                document.getElementById("filmBg").style = `background-image:url('https://via.placeholder.com/1920x1080/D9D9D9?text=${film.title}'`
+                let src
+                if (!film.cloudinary_url) {
+                    src = `https://via.placeholder.com/500?text=${film.title}`
+                } else {
+                    src = film.cloudinary_url
+                }
+
+                document.getElementById("filmBg").style = `background-image:url('${src}'`
                 document.getElementById("filmTitle").innerHTML = film.title
                 document.getElementById("category").innerHTML = film.category
                 document.getElementById("rating").innerHTML = film.rating

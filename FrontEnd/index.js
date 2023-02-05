@@ -26,6 +26,10 @@ app.get("/admin/addCustomer",(req,res)=>{
     res.sendFile("/public/admin-addCustomer.html", { root: __dirname })
 })
 
+app.get("/admin/addFilm",(req,res)=>{
+    res.sendFile("/public/admin-addFilm.html", { root: __dirname })
+})
+
 app.get("/admin/addActor",(req,res)=>{
     res.sendFile("/public/admin-addActor.html", { root: __dirname })
 })

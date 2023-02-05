@@ -16,8 +16,7 @@ const user = {
     },
     //endpoint 2
     get_actors: (limit, offset) => {
-        return query("SELECT actor_id,first_name,last_name FROM actor ORDER BY first_name ASC LIMIT ? OFFSET ?",
-            [limit, offset]
+        return query("SELECT actor_id,first_name,last_name FROM actor ORDER BY first_name ASC"
         )
     },
     //endpoint 3
@@ -43,7 +42,7 @@ const user = {
     //enmdpoint 6
     get_films: (limit, offset, max, search, id) => {
 
-        return query("SELECT film.film_id, film.title, category.name as category, film.rating, film.release_year, film.length as duration from film join film_category on film_category.film_id=film.film_id join category on category.category_id=film_category.category_id  WHERE category.category_id =? AND film.title LIKE ? AND (? IS NULL OR film.rental_rate < ?) LIMIT ? OFFSET ?;",
+        return query("SELECT film.film_id, film.title, category.name as category, film.rating, film.release_year, film.length as duration,film.cloudinary_file_id,film.cloudinary_url from film join film_category on film_category.film_id=film.film_id join category on category.category_id=film_category.category_id  WHERE category.category_id =? AND film.title LIKE ? AND (? IS NULL OR film.rental_rate < ?) LIMIT ? OFFSET ?;",
             [id, "%" + search + "%", max, max, limit, offset]
         )
     },

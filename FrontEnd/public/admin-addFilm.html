@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css"
+        integrity="sha512-ARJR74swou2y0Q2V9k0GbzQ/5vJ2RBSoCWokg4zkfM29Fb3vZEQyv0iWBMW/yvKgyHSR/7D64pFMmU8nYmbRkg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+</head>
+
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <span class="navbar-brand mb-0 h1">
+            <a href="/admin">SP DVD Admin Panel</a>
+        </span>
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <a class="page-link" href="/" id="HomeBtn">Home</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="/stores" id="StoreBtn">Stores</a>
+                </li>
+            </ul>
+        </nav>
+        <button id="logout-button" class="btn btn-outline-danger my-2 my-sm-0" type="button">
+            Logout
+        </button>
+    </nav>
+    <div class="row container-fluid">
+
+        <div class="col-md-2">
+            <h2>Add a New Film</h2>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <a href="/admin">Sales</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="/admin/addCustomer">Add new customer</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="#edit-customer">Edit existing customer</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="#delete-customer">Delete existing customer</a>
+                </li>
+            </ul>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <a href="/admin/addFilm">Add new film</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="#edit-film">Edit existing film</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="#delete-film">Delete existing film</a>
+                </li>
+            </ul>
+            <ul class="list-group"></ul>
+            <li class="list-group-item">
+                <a href="/admin/addActor">Add new Actor</a>
+            </li>
+            <li class="list-group-item">
+                <a href="#edit-actor">Edit existing actor</a>
+            </li>
+            <li class="list-group-item">
+                <a href="#delete-actor">Delete existing Actor</a>
+            </li>
+            </ul>
+        </div>
+        <div class="modal fade" id="formResponseModal" tabindex="-1" role="dialog"
+            aria-labelledby="formResponseModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="formResponseModalLabel">Form Response</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Form response message goes here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <form id="film-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="film-title">Title</label>
+                    <input type="text" class="form-control" id="filmtitle" name="title" required />
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select class="form-control" name="category" id="category">
+
+                    </select>
+                </div>
+                </select>
+                <div class="form-group">
+                    <label for="film-description">Description</label>
+                    <textarea class="form-control" id="filmdescription" name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="film-release-year">Release Year</label>
+                    <input type="number" class="form-control" id="filmreleaseyear" name="release_year" required />
+                </div>
+                <div class="form-group">
+                    <label for="film-language-id">Language</label>
+                    <select type="text" class="form-control" id="filmlanguageid" name="language_id" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="film-rental-duration">Rental Duration</label>
+                    <input type="number" class="form-control" id="filmrentalduration" name="rental_duration" required />
+                </div>
+                <div class="form-group">
+                    <label for="film-rental-rate">Rental Rate</label>
+                    <input type="number" step=0.01 class="form-control" id="filmrentalrate" name="rental_rate"
+                        required />
+                </div>
+                <div class="form-group">
+                    <label for="film-length">Length</label>
+                    <input type="number" class="form-control" id="filmlength" name="length" required />
+                </div>
+                <div class="form-group">
+                    <label for="film-replacement-cost">Replacement Cost</label>
+                    <input type="number" step=0.01 class="form-control" id="filmreplacementcost" name="replacement_cost"
+                        required />
+                </div>
+                <div class="form-group">
+                    <label for="film-rating">Rating</label>
+                    <select type="text" class="form-control col-8" id="filmrating" name="rating" required>
+                        <option>G</option>
+                        <option>PG</option>
+                        <option>PG-13</option>
+                        <option>R</option>
+                        <option>NC-17</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="film-special-features">Special Features</label>
+                    <select type="text" class="selectpicker col-12" id="filmspecialfeatures" name="special_features"
+                        multiple>
+                        <option>Trailers</option>
+                        <option>Commentaries</option>
+                        <option>Deleted Scenes</option>
+                        <option>Behind the Scenes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="actorBar">Select actor(s)</label>
+                    <select id="actorBar" name="actorBar" class="selectpicker col-md-12" data-live-search="true"
+                        title="Please select actor(s)" multiple>
+
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filmImage">Upload Film Image</label>
+                    <input type="file" class="form-control-file" id="filmImage">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"
+        integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js"
+        integrity="sha512-yDlE7vpGDP7o2eftkCiPZ+yuUyEcaBwoJoIhdXv71KZWugFqEphIS3PU60lEkFaz8RxaVsMpSvQxMBaKVwA5xg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        if (!localStorage.getItem("token")) {
+            // If not, redirect back to "/"
+            window.location.href = "/login";
+        }  // Logout button click event listener
+        document.getElementById("logout-button").addEventListener("click", function () {
+            // Remove "token" from localStorage
+            localStorage.removeItem("token");
+            // Redirect back to "/"
+            window.location.href = "/login";
+        });
+        const token = localStorage.getItem("token")
+        const langContainer = document.querySelector("#filmlanguageid")
+        let headers = {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }
+        axios.get("http://localhost:8081/actors")
+            .then(function (response) {
+                response.data.forEach(function (actor) {
+                    $("#actorBar").append(`<option value="${actor.actor_id}">${actor.first_name + " " + actor.last_name}</option>`);
+                });
+                $("#actorBar").selectpicker("refresh")
+            })
+            .catch(function (error) {
+                console.error(error);
+            });
+
+        axios.get("http://localhost:8081/language", headers)
+            .then(response => {
+                let language = response.data
+                language.forEach(lang => {
+                    let option = document.createElement("option")
+                    option.value = lang.language_id
+                    option.innerText = lang.name
+                    langContainer.appendChild(option)
+                })
+            })
+            .catch(error => {
+                if (error.response.status == 401) {
+                    alert("Token has either expired or is invalid, please login again")
+                    localStorage.removeItem("token");
+                    window.location.href = "/login"
+                }
+            })
+        const categoryContainer = document.querySelector("#category")
+        axios.get("http://localhost:8081/categories")
+            .then(response => {
+                let category = response.data
+                category.forEach(lang => {
+                    let option = document.createElement("option")
+                    option.value = lang.category_id
+                    option.innerText = lang.name
+                    categoryContainer.appendChild(option)
+                })
+            })
+        const input = document.getElementById("filmImage");
+        input.addEventListener("change", (e) => {
+            const file = input.files[0];
+            if (file.size > 5000000) {
+                alert("File size exceeds 5 MB. Please select a smaller file.");
+                input.value = "";
+            }
+        });
+
+
+        const form = document.getElementById("film-form");
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const formData = new FormData()
+            const filmImage = document.getElementById("filmImage").files[0];
+            var arr = ["filmtitle", "filmdescription", 'filmreleaseyear', 'filmlanguageid', 'filmrentalduration', 'filmrentalrate', 'filmlength', 'filmreplacementcost', 'filmrating']
+
+
+            for (var i of arr) {
+
+                formData.append(i, document.getElementById(i).value)
+            }
+            formData.append("category", $("#category").val())
+            formData.append("filmspecialfeatures", $("#filmspecialfeatures").selectpicker('val').join(","))
+            formData.append("actors", $("#actorBar").selectpicker('val'))
+            formData.append("filmImage", filmImage);
+            axios
+                .post("http://localhost:8081/films", formData,headers)
+                .then((response) => {
+                    document.getElementById("formResponseModalLabel").innerText = "Film added Successfully";
+                    document.querySelector(".modal-body").innerText = `Film ${response.data.insertId} has been added successfully!`;
+                    $("#formResponseModal").modal("show");
+                    
+                })
+                .catch((error) => {
+                    alert(error)
+                    
+                });
+        });
+    </script>
+</body>
+
+</html>

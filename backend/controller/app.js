@@ -9,12 +9,50 @@ import bodyParser from 'body-parser'
 import connection from "../model/databaseConfig.js"
 import util from "util"
 
+import streamifier from 'streamifier'
+
+import cloudinary from 'cloudinary'
+import multer from "multer"
+
+
 import jwt from 'jsonwebtoken'
 import JWT_SECRET from '../config.js'
 import isLoggedInMiddleware from '../auth/isLoggedInMiddleware.js'
 
 import cors from 'cors'
 app.use(cors())
+
+cloudinary.config({
+    cloud_name: "dkmcsied7",
+    api_key: "546892179878292",
+    api_secret: "hsyGBfEFiOXZb-DwRPbDf9LCbz0"
+})
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+const uploadStreamToCloudinary = function (buffer) {
+    return new Promise(function (resolve, reject) {
+        //Create a powerful, writable stream object which works with Cloudinary
+        let streamDestination = cloudinary.v2.uploader.upload_stream({
+            folder: 'films',
+            allowed_formats: 'png,jpg',
+            resource_type: 'image'
+        },
+            function (error, result) {
+                if (result) {
+                    //Inspect whether I can obtain the file storage id and the url from cloudinary
+                    //after a successful upload.
+                    //console.log({imageURL: result.url, publicId: result.public_id});
+                    let cloudinaryFileData = { url: result.url, publicId: result.public_id, status: 'success' };
+                    resolve({ status: 'success', data: cloudinaryFileData });
+                }
+                if (error) {
+                    reject({ status: 'fail', data: error });
+                } // End of if..else block inside the anonymous function given to upload_stream
+            });
+        streamifier.createReadStream(buffer).pipe(streamDestination);
+    }); //End of Promise
+} //End of uploadStreamToCloudinary 
 
 var query = util.promisify(connection.query).bind(connection);
 
@@ -46,10 +84,9 @@ app.get('/actors/:actor_id', async (req, res) => {
 //Endpoint 2
 app.get('/actors', async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || 20;
-        const offset = parseInt(req.query.offset) || 0;
 
-        const response = await user.get_actors(limit, offset)
+
+        const response = await user.get_actors()
 
         return res.status(200).json(response)
     } catch (error) {
@@ -60,7 +97,7 @@ app.get('/actors', async (req, res) => {
 //Endpoint 3
 app.post('/actors/', isLoggedInMiddleware, async (req, res) => {
     try {
-        const body = Object.assign({},req.body)
+        const body = Object.assign({}, req.body)
         const { first_name, last_name } = body
 
         if (!first_name || !last_name) {
@@ -68,7 +105,7 @@ app.post('/actors/', isLoggedInMiddleware, async (req, res) => {
         }
 
         const resp = await query(`SELECT * from actor WHERE actor.first_name = ? AND actor.last_name = ?`,
-        [first_name,last_name]
+            [first_name, last_name]
         )
         if (resp.length !== 0) {
             return res.status(409).json({ error: "Actor already exist!" })
@@ -165,7 +202,62 @@ app.get("/film_actor/:film_id", async (req, res) => {
     }
 })
 
+app.post("/films", isLoggedInMiddleware, upload.single("filmImage"), async (req, res) => {
+    try {
+        const filmtitle = req.body.filmtitle;
+        const filmdescription = req.body.filmdescription;
+        const filmreleaseyear = req.body.filmreleaseyear
+        const filmlanguageid = req.body.filmlanguageid
+        const filmrentalduration = req.body.filmrentalduration
+        const filmrentalrate = req.body.filmrentalrate
+        const filmlength = req.body.filmlength
+        const filmreplacementcost = req.body.filmreplacementcost
+        const filmrating = req.body.filmrating
+        const filmspecialfeatures = req.body.filmspecialfeatures
+        const category = req.body.category
+        const actors = req.body.actors.split(",")
 
+        let cloudResponse = null
+        if (req.file) {
+            const filmImage = req.file;
+            cloudResponse = await uploadStreamToCloudinary(filmImage.buffer)
+        }
+
+        await query("START TRANSACTION")
+        let response = await query(
+            "INSERT INTO film (title, description, release_year,language_id,rental_duration,rental_rate,length,replacement_cost,rating,special_features,cloudinary_file_id, cloudinary_url) VALUES (?, ?, ?, ?,?,?,?,?,?,?,?,?)",
+            [filmtitle, filmdescription, filmreleaseyear, filmlanguageid, filmrentalduration, filmrentalrate, filmlength, filmreplacementcost, filmrating, filmspecialfeatures, cloudResponse.data.publicId || null, cloudResponse.data.url || null]);
+
+        await query("INSERT INTO film_category (film_id,category_id) VALUES (?,?)",
+            [response.insertId, category]
+        )
+        if (actors.toString() !== [''].toString()) {
+            for (var i of actors) {
+                await query("INSERT INTO film_actor (actor_id,film_id) VALUES (?,?)",
+                    [i, response.insertId]
+                )
+            }
+        }
+
+        await query("COMMIT")
+        return res.status(201).json(response)
+    } catch (error) {
+        console.log(error)
+        await query("ROLLBACK")
+        return res.status(500).json(err_msg)
+    }
+
+});
+
+app.get("/language", isLoggedInMiddleware, async (req, res) => {
+    try {
+        const response = await query("SELECT language_id,name FROM language")
+        return res.status(200).json(response)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json(err_msg)
+    }
+})
 
 app.get('/categories', async (req, res) => {
     try {

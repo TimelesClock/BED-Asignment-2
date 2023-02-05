@@ -30,7 +30,7 @@
         </button>
     </nav>
     <div class="container-fluid p-3 ">
-        
+
         <div class="row mx-auto d-flex justify-content-center py-3">
             <div class="form-group col-sm-10 col-xl-4">
                 <input type="text" class="form-control" id="search-bar" placeholder="Search films by title..." />
@@ -88,16 +88,16 @@
     </div>
     <style>
         #sort-by-category {
-          z-index: 999;
+            z-index: 999;
         }
-      </style>
+    </style>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        document.getElementById("admin-button").addEventListener("click",(e)=>{
-            if (!localStorage.getItem("token")){
+        document.getElementById("admin-button").addEventListener("click", (e) => {
+            if (!localStorage.getItem("token")) {
                 window.location.href = "/login"
-            }else{
+            } else {
                 window.location.href = "/admin"
             }
         })
@@ -146,39 +146,7 @@
                     if (e.target.value) {
 
                         cat_id = e.target.value
-                        axios.get(`http://localhost:8081/film_categories/${cat_id}/films?limit=${limit}&offset=${offset}&search=${search}&max=${maxNumber}`)
-                            .then(response => {
-                                if (response.data.length < 24) {
-                                    $("#nextPage").hide()
-                                    $("#nextPageTop").hide()
-                                }
-                                if (currentPage == 1) {
-
-                                    $("#prevPage").hide()
-                                    $("#prevPageTop").hide()
-                                } else {
-                                    $("#prevPage").show()
-                                    $("#prevPageTop").show()
-                                }
-                                displayFilms(response.data)
-                            })
-                    } else {
-                        axios.get(`http://localhost:8081/films?limit=${limit}&offset=${offset}&search=${search}&max=${maxNumber}`)
-                            .then(response => {
-                                if (response.data.length < 24) {
-                                    $("#nextPage").hide()
-                                    $("#nextPageTop").hide()
-                                }
-                                if (currentPage == 1) {
-
-                                    $("#prevPage").hide()
-                                    $("#prevPageTop").hide()
-                                } else {
-                                    $("#prevPage").show()
-                                    $("#prevPageTop").show()
-                                }
-                                displayFilms(response.data)
-                            })
+                        
                     }
 
 
@@ -201,7 +169,7 @@
                     offset = (currentPage - 1) * limit;
                     pageNumTop.textContent = currentPage
                     pageNum.textContent = currentPage
-
+                    search = $("#search-bar").val()
                     if (cat_id == 0) {
 
 
@@ -390,16 +358,19 @@
 
                         let filmCard = document.createElement("div");
                         filmCard.classList.add("col-md-3", "mb-3");
+                        let src
+                        if(!film.cloudinary_url){
+                            src = `https://via.placeholder.com/500?text=${film.title}`
+                        }else{
+                            src = film.cloudinary_url
+                        }
                         filmCard.innerHTML = `
                             <div class="card">
-                            <img src="https://via.placeholder.com/500?text=${film.title}" class="card-img-top" alt="...">
+                            <img src="${src}" class="card-img-top img-fluid h-100 w-100" alt="...">
                             <div class="card-body">
                                 <h5 class="card-title">${film.title}</h5>
                                 <p class="card-text">Release Year: ${film.release_year}</p>
-                                <div class = "ml-1 mb-3 row">
-                                    <p class="card-text">Film Rating:</p>
-                                    <p class="ml-3 card-text border border-primary rounded-pill px-4 py-1">${film.rating}</p>
-                                </div>
+                                <p class="card-text">Film Rating: ${film.rating}</p>
                                 
                                 <a href="/films/${film.film_id}" class="btn btn-primary">View Details</a>
                             </div>
