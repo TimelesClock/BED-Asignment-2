@@ -41,7 +41,7 @@ nodemon server.js
 
 If everything works, it should display
 
-"App Hosted at [http://localhost:8081/%22(back-end)](http://localhost:8081/%22(back-end)) "http://localhost:8081/ (back-end)") and "Server hosted at [http://localhost:3001/%22(front=end)](http://localhost:3001/%22(front=end)) "http://localhost:3001/ (front=end)")
+"App Hosted at [http://localhost:8081/](http://localhost:8081/ (back-end)) "http://localhost:8081/ (back-end)") and "Server hosted at [http://localhost:3001](http://localhost:3001/ (front=end)) "http://localhost:3001/ (front=end)")
 
 ---
 
@@ -51,5 +51,5 @@ If everything works, it should display
 
 Open the server on your Browser at l[http://localhost:3001/](http://localhost:3001/ "http://localhost:3001/")
 
-Ensure that the server is running and it displays "Web App Hosted at [http://localhost:8081/ (back-end)](http://localhost:8081/%22(back-end)) "http://localhost:8081/ (back-end)") and "Server hosted at [http://localhost:3001/ (front=end)](http://localhost:3001/%22(front=end)) "http://localhost:3001/ (front=end)")
+Ensure that the server is running and it displays "Web App Hosted at [http://localhost:8081/](http://localhost:8081/ (back-end)) "http://localhost:8081/ (back-end)") and "Server hosted at [http://localhost:3001/ ](http://localhost:3001/ (front=end)) "http://localhost:3001/ (front=end)")
 before testing the server on Postman/Browser
