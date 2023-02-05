@@ -1,3 +1,6 @@
+// P2205865
+// Leong Yu Zhi Andy
+// DIT/FT/1B/02
 import jwt from 'jsonwebtoken'
 import JWT_SECRET from '../config.js'
 
