@@ -62,39 +62,18 @@ app.use(bodyParser.json())
 app.use(urlencodedParser)
 
 const err_msg = { "error_msg": "Internal server error" }
-//Endpoint 1
-app.get('/actors/:actor_id', async (req, res) => {
-    try {
-        const id = req.params.actor_id
-        const response = await user.get_actor(id)
-
-        if (response.length === 0) {
-            return res.status(204).send("No Content. Record of given actor_id cannot be found.")
-        } else {
-            return res.status(200).json(response[0])
-        }
-
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json(err_msg);
-    }
 
 
-})
-//Endpoint 2
 app.get('/actors', async (req, res) => {
     try {
-
-
         const response = await user.get_actors()
-
         return res.status(200).json(response)
     } catch (error) {
         console.log(error)
         return res.status(500).json(err_msg)
     }
 })
-//Endpoint 3
+
 app.post('/actors/', isLoggedInMiddleware, async (req, res) => {
     try {
         const body = Object.assign({}, req.body)
@@ -118,7 +97,7 @@ app.post('/actors/', isLoggedInMiddleware, async (req, res) => {
         return res.status(500).json(err_msg)
     }
 })
-//Endpoint 4
+
 app.get("/customers", async (req, res) => {
     try {
         const response = await query("SELECT * FROM customer")
@@ -154,7 +133,7 @@ app.put('/actors/:actor_id', isLoggedInMiddleware, async (req, res) => {
         return res.status(500).json(err_msg)
     }
 })
-//Endpoint 5
+
 app.delete('/actors/:actor_id', async (req, res) => {
     try {
         const id = req.params.actor_id
@@ -365,10 +344,6 @@ app.get('/films', async (req, res) => {
 
 app.get("/sales", isLoggedInMiddleware, async (req, res) => {
     try {
-        // if (!req.decodedToken || userID !== req.decodedToken.user_id) {
-        //     res.status(403).send();
-        //     return;
-        // }
         let response = await query(
             `
               SELECT 
@@ -436,29 +411,8 @@ app.get('/film_categories/:category_id/films', async (req, res) => {
         return res.status(500).json(err_msg)
     }
 })
-//Endpoint 7
-app.get('/customer/:customer_id/payment', async (req, res) => {
 
 
-    try {
-        const id = req.params.customer_id
-        const start = req.query.start_date
-        const end = req.query.end_date
-
-        const response = await user.get_payment(id, start, end)
-
-        var total = 0
-        if (response.length !== 0) {
-            response.forEach(obj => total += parseFloat(obj.amount))
-        }
-
-        return res.status(200).json({ rental: response, total: total.toFixed(2) })
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json(err_msg)
-    }
-})
-//endpoint 8
 app.post('/customers/:address_id', isLoggedInMiddleware, async (req, res) => {
     try {
         const body = Object.assign({}, req.body)
@@ -634,35 +588,6 @@ app.get('/stocks/:id', async (req, res) => {
     }
 })
 
-//Endpoint 9, POST a new rental and payment, Need 
-app.post('/rental', async (req, res) => {
-    try {
-        const check = ["film_id", "store_id", "customer_id", "staff_id", "amount"]
-        for (var i of check) {
-            if (req.body[i] == null) {
-                return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
-            }
-        }
-
-        let stock = await user.getStock(req.body.film_id, req.body.store_id)
-        if (stock.length == 0) {
-            return res.status(400).json({ error_msg: "No Stock" })
-        }
-
-        await query("START TRANSACTION")
-        let rentResponse = await user.addRent(stock[0].inventory_id, req.body)
-        let paymentResponse = await user.addPayment(rentResponse.insertId, req.body)
-        await query("COMMIT")
-
-        return res.status(201).json({ rental_id: rentResponse.insertId, payment_id: paymentResponse.insertId })
-
-    } catch (error) {
-        await query("ROLLBACK")
-        console.log(error)
-        return res.status(500).json(err_msg)
-    }
-
-})
 
 app.delete("/actor/:actor_id",isLoggedInMiddleware,async (req,res)=>{
     try{
@@ -725,44 +650,6 @@ app.get('/stores', async (req, res) => {
     }
 })
 
-//Endpoint 10 Add a new staff
-app.post('/staff', async (req, res) => {
-    try {
-        const check1 = ["first_name", "last_name", "store_id", "email", "username", "password", "address"]
-        const check2 = ["address_line1", "address_line2", "district", "city_id", "postal_code", "phone"]
-        for (var i of check1) {
-            if (req.body[i] == null) {
-                return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
-            }
-        }
-        for (var i of check2) {
-            if (req.body.address[i] == null) {
-                return res.type('json').status(400).send(JSON.stringify({ "error_msg": "missing data" }))
-            }
-        }
-
-        let response = await query("SELECT email from staff WHERE email LIKE ?", [req.body.email])
-
-        if (response.length !== 0) {
-            return res.status(409).json({
-                error_msg: "email already exist",
-            });
-        }
-
-        await query("START TRANSACTION")
-        let address_response = await user.addAddress(req.body.address)
-        let staff_response = await user.new_staff(req.body, address_response.insertId)
-        await query("COMMIT")
-
-        return res.status(201).json({ staff_id: staff_response.insertId })
-
-
-    } catch (error) {
-        await query("ROLLBACK")
-        console.log(error)
-        return res.status(500).json(err_msg)
-    }
-})
 
 app.post("/login/", async (req, res) => {
 

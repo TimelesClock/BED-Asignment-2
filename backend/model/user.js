@@ -93,33 +93,7 @@ const user = {
           and rental.return_date < CURRENT_DATE();`, [film_id, store_id])
     },
 
-    addRent: (invID, body) => {
-        let date = new Date()
-        date.setHours(date.getHours() + 8)
-        return query("INSERT INTO rental (rental_date,inventory_id,customer_id,staff_id) VALUES (?,?,?,?)", [date.toISOString().slice(0, 19).replace('T', ' '), invID, body.customer_id, body.staff_id])
-    },
 
-    addPayment: (ID, body) => {
-
-
-        let date = new Date()
-        date.setHours(date.getHours() + 8)
-        return query("INSERT INTO payment (customer_id,staff_id,rental_id,amount,payment_date) VALUES (?,?,?,?,?)", [body.customer_id, body.staff_id, ID, body.amount, date.toISOString().slice(0, 19).replace('T', ' ')])
-    },
-
-
-    //endpoint 10
-
-    new_staff: (body, addressID) => {
-        return query('INSERT INTO staff(first_name,last_name,address_id,email,store_id,active,username,password) VALUES (?,?,?,?,?,1,?,SHA1(?))', [
-            body.first_name,
-            body.last_name,
-            addressID,
-            body.email,
-            body.store_id,
-            body.username,
-            body.password])
-    },
     //Login
     verify: function (email, password) {
         return query("SELECT * FROM staff WHERE email = ? AND password = sha1(?)", [email, password])
